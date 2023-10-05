@@ -70,7 +70,7 @@ def create_train_val_csv(seed = 42, train_val_split = 0.2):
 
 def get_predictions():
     model = create_model()
-    
+
     # Path of directory containing all model checkpoints
     path = os.path.join(os.getcwd(), 'MobileNet_checkpoints')
 
@@ -86,13 +86,13 @@ def get_predictions():
             if float(temp) > max_iou:
                 max_iou = float(temp)
                 min_filename = file
-            
+
     # Load model weights        
     model.load_weights(os.path.join(path, min_filename))
     print('Model loaded')
-    
+
     test = pd.read_csv(TEST_PATH, index_col='image_name')
-    regions = list()
+    regions = []
     count = 0
     for filename in glob.glob(IMAGES):
         if count%1000==0: print(count)
@@ -103,13 +103,13 @@ def get_predictions():
         try:
             image = cv2.resize(unscaled, (IMAGE_SIZE, IMAGE_SIZE))
             feat_scaled = preprocess_input(np.array(image, dtype=np.float32))
-            
+
             region = model.predict(x=np.array([feat_scaled]))[0]
             regions.append(region)
-    
+
             x1 = int(region[0] * image_width / IMAGE_SIZE)
             y1 = int(region[1] * image_height / IMAGE_SIZE)
-    
+
             x2 = int((region[0] + region[2]) * image_width / IMAGE_SIZE)
             y2 = int((region[1] + region[3]) * image_height / IMAGE_SIZE)
 
@@ -120,7 +120,7 @@ def get_predictions():
             test.loc[filename[12:], 'y2'] = y2
         except:
             print(count, filename)
-    
+
     test.to_csv('predictions_MobileNet_model1.csv', encoding='utf-8', index=True)
     
     
@@ -130,7 +130,7 @@ class DataGenerator(Sequence):
         self.paths = []
 
         with open(csv_file, "r") as file:
-            self.coords = np.zeros((sum(1 for line in file), 4))
+            self.coords = np.zeros((sum(1 for _ in file), 4))
             file.seek(0)
 
             reader = csv.reader(file, delimiter=",")
@@ -198,7 +198,7 @@ class Validation(Callback):
         mse = np.round(mse, 4)
         logs["val_mse"] = mse
 
-        print(" - val_iou: {} - val_mse: {}".format(iou, mse))
+        print(f" - val_iou: {iou} - val_mse: {mse}")
 
 def create_model(trainable=True):
     model = MobileNetV2(input_shape=(IMAGE_SIZE, IMAGE_SIZE, 3), include_top=False, alpha=ALPHA, weights = None)

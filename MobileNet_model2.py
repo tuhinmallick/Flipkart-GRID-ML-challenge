@@ -130,7 +130,7 @@ class DataGenerator(Sequence):
         self.paths = []
 
         with open(csv_file, "r") as file:
-            self.coords = np.zeros((sum(1 for line in file), 4))
+            self.coords = np.zeros((sum(1 for _ in file), 4))
             file.seek(0)
 
             reader = csv.reader(file, delimiter=",")
@@ -195,7 +195,7 @@ class Validation(Callback):
         mse = np.round(mse, 4)
         logs["val_mse"] = mse
 
-        print(" - val_iou: {} - val_mse: {}".format(iou, mse))
+        print(f" - val_iou: {iou} - val_mse: {mse}")
 
 def create_model(trainable=True):
     image_input = Input(shape=(160, 120, 3))
